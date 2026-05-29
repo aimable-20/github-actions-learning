@@ -1,21 +1,30 @@
-.PHONY: install test lint format type-check check clean
+name: CI
 
-install:
-	uv sync --dev
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
-test:
-	uv run pytest
+jobs:
+  quality:
+    name: Tests and quality checks
+    runs-on: ubuntu-latest
 
-lint:
-	uv run ruff check .
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
 
-format:
-	uv run ruff format .
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
 
-type-check:
-	uv run mypy src tests
+      - name: Set up Python
+        run: uv python install 3.11
 
-check: lint type-check test
+      - name: Install dependencies
+        run: make install
 
-clean:
-	rm -rf .pytest_cache .ruff_cache .mypy_cache htmlcov .coverage
+      - name: Run all checks
+        run: make check
