@@ -1,56 +1,21 @@
-name: CI
+.PHONY: install test lint format type-check check clean
 
-on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
+install:
+	uv sync --dev
 
-jobs:
-  quality:
-    name: Code quality
-    runs-on: ubuntu-latest
+test:
+	uv run pytest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+lint:
+	uv run ruff check .
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
+format:
+	uv run ruff format .
 
-      - name: Set up Python
-        run: uv python install 3.11
+type-check:
+	uv run mypy src tests
 
-      - name: Install dependencies
-        run: make install
+check: lint type-check test
 
-      - name: Run lint
-        run: make lint
-
-      - name: Run type checking
-        run: make type-check
-
-  tests:
-    name: Unit tests
-    runs-on: ubuntu-latest
-    needs: quality
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-
-      - name: Set up Python
-        run: uv python install 3.11
-
-      - name: Install dependencies
-        run: make install
-
-      - name: Run unit tests
-        run: make test
+clean:
+	rm -rf .pytest_cache .ruff_cache .mypy_cache htmlcov .coverage
